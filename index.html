@@ -165,7 +165,7 @@ th{font:500 10px "Jost";letter-spacing:.2em;text-transform:uppercase}
 .q{white-space:pre-line}.q .box{border:1px solid var(--ink);padding:0 6px;margin:0 2px;font-weight:500;white-space:nowrap}
 .q mark{background:var(--butter);color:var(--ink);padding:0 4px;font-weight:500;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:5px}
 .instr{margin:0 0 18px;padding:2px 0 2px 14px;border-left:2px solid var(--ink)}
-.instr b{display:block;font:500 clamp(16px,1.9vw,19px)/1.4 "Jost";letter-spacing:0}
+.instr b{display:block;font:500 clamp(15px,1.8vw,17px)/1.5 "Noto Sans KR";letter-spacing:0}
 .instr span{display:block;font:400 13px "Noto Sans KR";color:var(--mute);margin-top:2px}
 .q sup{font-size:10px;font-weight:600;margin-right:2px;letter-spacing:.05em}
 .opts{border-bottom:1px solid var(--hair)}
@@ -629,7 +629,7 @@ function render() {
       ${e.followups.map((f,k)=>`<details class="fu"><summary>${esc(f.q)} <button class="ulink" data-fq="${k}">Ask</button></summary><p>${ph(f.a)}</p></details>`).join('')}</div>`;
   const ins = INSTR(e);
   const tname = e.type==='speech' ? (e.kind==='intro'?'Speaking — introduction':'Speaking — '+e.topic) : typeName[e.type];
-  lshell(`<div class="ltag"><span class="cap">${esc(tname)}</span><span class="cap">${label(S.id)}</span><span class="kr" style="font-size:12px">${esc(unit.title_ko)}</span></div><div class="instr"><b>${ins[0]}</b><span>${ins[1]}</span></div>${body}`, [S.i, S.items.length, String(S.i+1).padStart(2,'0')+' / '+String(S.items.length).padStart(2,'0')]);
+  lshell(`<div class="ltag"><span class="cap">${esc(tname)}</span><span class="cap">${label(S.id)}</span><span class="kr" style="font-size:12px">${esc(unit.title_ko)}</span></div><div class="instr"><b>${ins[1]}</b></div>${body}`, [S.i, S.items.length, String(S.i+1).padStart(2,'0')+' / '+String(S.items.length).padStart(2,'0')]);
   document.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{ if(S.checked)return; document.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); S.sel=+b.dataset.o; ready(); });
   document.querySelectorAll('[data-tf]').forEach(b=>b.onclick=()=>{ if(S.checked)return; const k=b.dataset.tf; document.querySelectorAll(`[data-tf="${k}"]`).forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); S.tf[k]=b.dataset.v==='1'; ready(); });
   document.querySelectorAll('[data-g],[data-r]').forEach(x=>x.oninput=ready);

@@ -658,7 +658,8 @@ function render() {
     document.querySelector('label[for="af"]').onkeydown = ev => { if (ev.key==='Enter'||ev.key===' ') { ev.preventDefault(); af.click(); } };
     $('#userec').onclick = () => LASTREC && transcribe(LASTREC, e);
   }
-  const kwi=$('#kwi'); if (kwi) { kwi.oninput=ready; kwi.onkeydown=ev=>{ if(ev.key==='Enter' && !S.checked && kwi.value.trim()) check(); }; setTimeout(()=>kwi.focus(),0); }
+  const kwi=$('#kwi'); if (kwi) { kwi.oninput=ready; kwi.onkeydown=ev=>{ if(ev.key!=='Enter' || ev.isComposing) return; ev.preventDefault();   // otherwise this same key press clicks the newly focused Continue button
+    if(!ev.repeat && !S.checked && kwi.value.trim()) check(); }; setTimeout(()=>kwi.focus(),0); }
   document.querySelectorAll('[data-play]').forEach(b=>b.onclick=()=>{ if(!speak(e.script,+b.dataset.play)) $('#scr').hidden=false; });
   const sb=$('#showscr'); if(sb) sb.onclick=()=>{ const s=$('#scr'); s.hidden=!s.hidden; };
   ready(); window.scrollTo(0,0);
@@ -758,7 +759,7 @@ function check() {
     return;
   }
   foot(`<div class="fb"><strong>${right?'Correct':'Not quite'}</strong>${info}${britNote(e)}</div><button class="btn" id="nx">Continue</button>`, right?'ok':'no');
-  record(right); $('#nx').onclick = next; $('#nx').focus();
+  record(right); $('#nx').onclick = next; $('#nx').onkeydown = ev => { if (ev.repeat) ev.preventDefault(); }; $('#nx').focus();   // holding Enter must not skip the answer
   const sy = $('#sayuk'); if (sy) sy.onclick = () => speak(e.answers[0], 0.75);   // en-GB voice is preferred in speak()
 }
 function record(right) {

@@ -367,10 +367,12 @@ const daily = () => { const d = store.daily;
   return store.daily; };
 
 // ---------- speech ----------
-let voice = null;
-const pickVoice = () => { try { const v = speechSynthesis.getVoices(); voice = v.find(x=>/en-GB/i.test(x.lang)) || v.find(x=>/^en/i.test(x.lang)) || null; } catch(e) {} };
+// American English by default; the British voice is used only for the 'British pronunciation' button
+let voice = null, voiceGB = null;
+const pickVoice = () => { try { const v = speechSynthesis.getVoices(), by = re => v.find(x=>re.test(x.lang));
+  voice = by(/en[-_]US/i) || by(/^en/i) || null; voiceGB = by(/en[-_]GB/i) || voice; } catch(e) {} };
 if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
-const speak = (text, rate) => { if (!('speechSynthesis' in window)) return false; try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text.replace(/(^|\s)(Nurse|Patient|Doctor|Midwife):\s*/g,' ... ')); u.lang='en-GB'; if (voice) u.voice=voice; u.rate=rate; speechSynthesis.speak(u); return true; } catch(e) { return false; } };
+const speak = (text, rate, gb) => { if (!('speechSynthesis' in window)) return false; try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text.replace(/(^|\s)(Nurse|Patient|Doctor|Midwife):\s*/g,' ... ')); u.lang = gb?'en-GB':'en-US'; const pv = gb?voiceGB:voice; if (pv) u.voice=pv; u.rate=rate; speechSynthesis.speak(u); return true; } catch(e) { return false; } };
 const stopSpeak = () => { try { speechSynthesis.cancel(); } catch(e) {} clearInterval(TM); TM = null; try { if (REC && REC.state==='recording') REC.stop(); } catch(e) {} };
 
 // ---------- speaking timer & recorder ----------
@@ -760,7 +762,7 @@ function check() {
   }
   foot(`<div class="fb"><strong>${right?'Correct':'Not quite'}</strong>${info}${britNote(e)}</div><button class="btn" id="nx">Continue</button>`, right?'ok':'no');
   record(right); $('#nx').onclick = next; $('#nx').onkeydown = ev => { if (ev.repeat) ev.preventDefault(); }; $('#nx').focus();   // holding Enter must not skip the answer
-  const sy = $('#sayuk'); if (sy) sy.onclick = () => speak(e.answers[0], 0.75);   // en-GB voice is preferred in speak()
+  const sy = $('#sayuk'); if (sy) sy.onclick = () => speak(e.answers[0], 0.75, true);   // British voice: this button illustrates the British pronunciation
 }
 function record(right) {
   const key = S.items[S.i].key;

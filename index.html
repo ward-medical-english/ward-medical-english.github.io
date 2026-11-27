@@ -261,6 +261,14 @@ const SYS = {u1:'Body plan',u2:'Integumentary',u3:'Musculoskeletal',u4:'Blood & 
 const BRIT = /\b\w*(haem|anaem|aemia|ischaem|oesoph|oedema|oestr|foet|paed|gynaecol|diarrhoea|rrhoea|pnoea|melaena|tumour|colour|behaviour|centre|litre|fibre|anaesth|aesthes|coeliac|leucocyt|leucopen|faec|adrenaline|isation)\w*/i;
 const lev = (a, b) => { const d = Array.from({length:b.length+1}, (_,j)=>j);   // edit distance, for "almost right" spelling
   for (let i=1;i<=a.length;i++) { let p = d[0]; d[0] = i; for (let j=1;j<=b.length;j++) { const t = d[j]; d[j] = Math.min(d[j]+1, d[j-1]+1, p+(a[i-1]===b[j-1]?0:1)); p = t; } } return d[b.length]; };
+// hint must cover every accepted spelling: British and American forms can differ in first letter and length
+function spellHint(e) {
+  const one = a => `starts with “${esc(a[0])}” · ${a.length} letters`;
+  const [a, b] = e.answers;
+  if (!b || (a[0]===b[0] && a.length===b.length)) return 'S' + one(a).slice(1);
+  const names = e.pron_uk ? ['British', 'American'] : ['Option 1', 'Option 2'];
+  return `${names[0]}: ${one(a)}<br>${names[1]}: ${one(b)}`;
+}
 function britNote(e) {
   const ans = e.type==='error' ? [e.fix] : (e.type==='keyword'||e.type==='listen_gap'||e.type==='spell') ? e.answers : e.options ? [e.options[e.answer]] : [];
   const hit = ans.map(a => (String(a).match(BRIT)||[])[0]).find(Boolean);
@@ -630,7 +638,7 @@ function render() {
   else if (e.type==='listen_tf') body = playBox(e.script)+e.statements.map((s,k)=>`<div class="tf"><div>${k+1}. ${esc(s.s)}</div><div class="seg"><button data-tf="${k}" data-v="1">True</button><button data-tf="${k}" data-v="0">False</button></div></div>`).join('');
   else if (e.type==='reading') body = `<div class="passage">${esc(e.passage)}</div>`+e.questions.map((q,k)=>`<p style="font-weight:500;margin:18px 0 8px">${k+1}. ${esc(q.q)}</p><textarea data-r="${k}" placeholder="Answer in a complete sentence."></textarea><div class="model" data-m="${k}" hidden><span class="cap">Model answer</span><br>${esc(q.model)}</div>`).join('');
   else if (e.type==='writing') body = `<p class="q">${esc(e.prompt)}</p><div class="kw">${e.keywords.map(k=>`<span>${esc(k)}</span>`).join('')}</div><textarea id="wt" style="min-height:220px" placeholder="Write about 80 words."></textarea><div class="cap" id="wc" style="color:var(--mute);margin-top:6px">0 words</div><div class="model" id="wm" hidden><span class="cap">Model answer</span><br>${esc(e.model)}</div>`;
-  else if (e.type==='spell') body = `<p class="q">${esc(e.prompt).replace(/_{3,}/g,'<u>&emsp;&emsp;&emsp;</u>')}</p><div class="gap"><input id="kwi" class="kwi" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="용어 입력"></div><p class="cap" style="color:var(--mute);margin-top:6px">Starts with “${esc(e.answers[0][0])}” · ${e.answers[0].length} letters${e.answers.length>1&&e.answers[1].length!==e.answers[0].length?` (British) / ${e.answers[1].length} (American)`:''}</p>`;
+  else if (e.type==='spell') body = `<p class="q">${esc(e.prompt).replace(/_{3,}/g,'<u>&emsp;&emsp;&emsp;</u>')}</p><div class="gap"><input id="kwi" class="kwi" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="용어 입력"></div><p class="cap sphint" style="color:var(--mute);margin-top:6px;line-height:2">${spellHint(e)}</p>`;
   else if (e.type==='keyword') body = `<p class="q">${esc(e.sentence)}</p><div class="kwd cap">${esc(e.keyword)}</div><div class="gap">${esc(e.stem).replace('______','<input id="kwi" class="kwi" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="빈칸">')}</div>`;
   else if (e.type==='letter' || e.type==='essay') { const tgt = e.type==='letter'?'about 150 words':'at least 250 words';
     body = `<p class="q">${esc(e.prompt)}</p>${e.points?`<p class="cap" style="margin:0 0 8px">Include</p><ul class="pts">${e.points.map(p=>`<li>${esc(p)}</li>`).join('')}</ul>`:''}<textarea id="wt" style="min-height:${e.type==='letter'?300:420}px" placeholder="${e.type==='letter'?'Dear ...,':'Write '+tgt+'.'}"></textarea><div class="cap" id="wc" style="color:var(--mute);margin-top:6px">0 words · target ${tgt}</div>
